@@ -12,9 +12,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -41,12 +45,15 @@ public class MainActivity extends AppCompatActivity implements FahListener {
     String emiString;
     TelephonyManager telephonyManager;
     Context c;
+    MaterialDialog dialogue;
+    Button revokeDevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         swirlView = (SwirlView) findViewById(R.id.imgF);
         tvInfo = (TextView) findViewById(R.id.txtInfo);
+        revokeDevice = (Button) findViewById(R.id.btn_revoke);
         c =getApplicationContext();
         mFAH = new FingerprintAuthHelper
                 .Builder(this, this) //(Context inscance of Activity, FahListener)
@@ -62,7 +69,12 @@ public class MainActivity extends AppCompatActivity implements FahListener {
             Log.e("tag","hardware disabled");
 
         }
+        dialogue = new MaterialDialog.Builder(this)
+                .title("Please Wait")
+                .content("Checking the Fingerprint")
 
+                .theme(Theme.LIGHT)
+                .progress(true, 0).build();
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -90,6 +102,14 @@ public class MainActivity extends AppCompatActivity implements FahListener {
                 // result of the request.
             }
         }
+
+        revokeDevice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(emiString!=null)
+                revokeRequest(Config.RevokeDevice+"?emi="+emiString);
+            }
+        });
     }
 
     @Override
@@ -136,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements FahListener {
             Log.e("tag","fp start listening");
         }else{
             Log.e("tag","on resume no permision. ");
-
         }
 
 
@@ -202,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements FahListener {
     public void sendRequest(String url){
 
         Log.e("TAG","sendRequest url = "+url);
-
+        startDialogue(true);
         RequestQueue queue = Volley.newRequestQueue(this);
        // String url ="http://www.google.com";
 
@@ -211,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements FahListener {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        startDialogue(false);
+
                         Log.e("TAG","resposne = "+response);
                         // Display the first 500 characters of the response string.
                         //mTextView.setText("Response is: "+ response.substring(0,500));
@@ -221,10 +242,11 @@ public class MainActivity extends AppCompatActivity implements FahListener {
                                 String Otp = model.getOtp().toString();
                                 Log.e("Tag","status = 1  Otp ="+Otp);
                                 Intent otpAct = new Intent(MainActivity.this,OTPActivity.class);
-                                //otpAct.addFlags()
+                                otpAct.putExtra("otp", model.getOtp());
                                 startActivity(otpAct);
                             }else if(model.getStatus()==2){
                                 Intent registerUser = new Intent(MainActivity.this,RegisterActivity.class);
+
                                 startActivity(registerUser);
                             }else if(model.getStatus()==0){
                                 Log.e("Tag","status = 0");
@@ -237,6 +259,8 @@ public class MainActivity extends AppCompatActivity implements FahListener {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                startDialogue(false);
+
                 //mTextView.setText("That didn't work!");
                 Log.e("Tag","Failure response msg="+error.getLocalizedMessage());
                 Toast.makeText(c,"Network issue",Toast.LENGTH_LONG).show();
@@ -247,5 +271,62 @@ public class MainActivity extends AppCompatActivity implements FahListener {
         queue.add(stringRequest);
     }
 
+    public void startDialogue(boolean k){
+        if(k){
+             dialogue.show();
+            }else{
+            if(dialogue.isShowing()){
+                dialogue.dismiss();
+            }
+        }
+    }
+
+
+
+    public void revokeRequest(String url){
+
+
+        Log.e("TAG","sendRequest url = "+url);
+        startDialogue(true);
+        RequestQueue queueRev = Volley.newRequestQueue(this);
+        // String url ="http://www.google.com";
+
+// Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        startDialogue(false);
+
+                        Log.e("TAG","resposne = "+response);
+                        // Display the first 500 characters of the response string.
+                        //mTextView.setText("Response is: "+ response.substring(0,500));
+                        model = gson.fromJson(response.toString(),CheckEmi.class);
+                        Log.e("Tag","succes response status="+model.getStatus());
+                        if (model.getStatus()==1){
+                            Toast.makeText(c,"Device Revoked",Toast.LENGTH_LONG).show();
+
+                        }else{
+                            Toast.makeText(c,"Please try again",Toast.LENGTH_LONG).show();
+
+                        }
+
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                startDialogue(false);
+
+                //mTextView.setText("That didn't work!");
+                Log.e("Tag","Failure response msg="+error.getLocalizedMessage());
+                Toast.makeText(c,"Network issue",Toast.LENGTH_LONG).show();
+
+            }
+        });
+// Add the request to the RequestQueue.
+        queueRev.add(stringRequest);
+
+    }
 
 }

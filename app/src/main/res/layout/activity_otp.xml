@@ -27,8 +27,22 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_marginTop="25dp"
+        android:id="@+id/tag"
         android:layout_below="@+id/otptv"
         android:text="Enter the OTP before its too late"
+
+        />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/tag"
+        android:id="@+id/tvsec"
+        android:text=""
 
         />
 

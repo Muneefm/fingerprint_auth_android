@@ -29,6 +29,8 @@ dependencies {
     compile 'com.mattprecious.swirl:swirl:1.0.0'
     compile 'com.github.pro100svitlo:fingerprintAuthHelper:1.1.7'
     compile 'com.android.volley:volley:1.0.0'
+    compile 'com.afollestad.material-dialogs:core:0.9.1.0'
+
     testCompile 'junit:junit:4.12'
     compile files('libs/gson-2.8.0.jar')
 }

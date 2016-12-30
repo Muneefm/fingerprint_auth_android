@@ -6,7 +6,8 @@ package com.project.authenitcation;
 
 public class Config {
 
-    public static String CheckEmiUrl ="http://172.20.10.2:8888/proj/public/checkemi";
-    public static String RegisterEmi ="";
+    public static String CheckEmiUrl ="http://104.236.204.198/auth/public/checkemi";
+    public static String RegisterEmi ="http://104.236.204.198/auth/public/regf";
+    public static String RevokeDevice ="http://104.236.204.198/auth/public/revd";
 
 }
